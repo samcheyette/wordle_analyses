@@ -51,7 +51,7 @@ panel.background = element_rect(fill = "white", colour = "grey50"),
 
 ```{r}
 
-df <- read.csv("out_files/data_model6.csv")
+df <- read.csv("data/data_model1.csv")
 
 df <- df %>%
         mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %>%
@@ -68,3 +68,13 @@ df_sub <- df %>%
 ```
 
 Anybody home?
+
+```{r}
+ggplot(data=df, aes(x=guess_number, y=random_ent_reduction)) +
+      stat_summary() +
+      paper_theme
+
+
+
+
+```
