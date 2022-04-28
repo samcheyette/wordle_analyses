@@ -115,16 +115,23 @@ for (i in 1:nrow(df_sub)) {
 df_plt <- data.frame(bonus_regime, guess_number, corr, words_remaining)
 
 
+
+
 ```
 
 
 
 ```{r}
 
-df_model <- read.csv("data/data_model1.csv")
+df_model <- read.csv("data/data_model6.csv")
 df_model$condition <- gsub("TIME","Time",df_model$condition)
 df_model$condition <- gsub("GUESS","Guess",df_model$condition)
 
+f_get_prev_exp <- function(uid) {
+  uid <- uid[1]
+  subs <- subset(df_sub, as.character(df_sub$uniqueid) == uid)
+  return(subs$prev_exp[1])
+}
 
 df_model <- df_model %>%
         mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %>%
@@ -133,16 +140,27 @@ df_model <- df_model %>%
          filter(max(time_elapsed_trial) < 60 * 10) %>%
         filter(max(time_elapsed) < 60 * 5)
 
+df_model <- df_model %>%
+            group_by(uniqueid) %>%
+            mutate(prev_exp = f_get_prev_exp(uniqueid))
 
 df_model_sub <- df_model %>%
           group_by(uniqueid,trial) %>%
           top_n(n=1,wt=guess_number)
 
 
+
+
+
 ```
 <br>
 
+The question I'm interested in here is, when making a decision, 1) how do people decide how much data to gather; and 2) how much thought to put into the data they gather. One interesting idea is that under some circumstances, there will be a trade-off between gathering more data and thinking about the data. For instance, there are cases where you can figure something out by brute force without too much effort (e.g., if the space of possibilities is small). In other cases, brute force strategies will take too long, but by thinking, you can effectively narrow the space of possibilities. My hypothesis is that people choose information-gathering strategies that are efficient relative to the time costs of exploration versus thinking. A related hypothesis is that people will think more when there is more to be gained by thinking.
+
+To test this, I ran a small pilot where participants played Wordle, where participants were in one of two incentive conditions. In one condition they were given a bonus if they found the correct word quickly. In the other condition, they were given a bonus if they guessed the correct word in few guesses. 
+
 The first question we can ask is: did the manipulation work? There are a couple ways we can evaluate this. First, we can check whether people in the guess condition require fewer guesses in the guess-bonus condition.
+
 <br>
 
 ```{r, fig.width=8,fig.height=3}
@@ -269,3 +287,5 @@ ggplot(data=subset(df_model, df_model$guess_number > 1), aes(x=max_v_random_gain
 
 
 ```
+
+
