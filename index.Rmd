@@ -1,0 +1,51 @@
+---
+title: "wordle_analyses"
+output: html_document
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
+```
+
+
+```{r, echo=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+##libraries, globals
+
+library(ggplot2)
+library(reshape)
+library(grid)
+library(dplyr)
+library(gridExtra)
+library(lme4)
+library(reghelper)
+library(RColorBrewer)
+#library(e1071)   
+library(robustbase)
+library(tidylog)
+library(hash)
+
+
+
+paper_theme <- theme_light() + theme( axis.title.x = element_text(size=18),
+  axis.text.x=element_text(colour="#292929", 
+                           size = 14), 
+  axis.title.y = element_text(size = 18, vjust = 1),
+  axis.text.y  = element_text(size = 14, colour="#292929"),
+  strip.text=element_text(size=16,color="black"),
+strip.background = element_rect(colour = "grey50", fill = "white"),
+panel.background = element_rect(fill = "white", colour = "grey50"),
+  axis.ticks.x=element_blank(),axis.ticks.y=element_blank(),
+  axis.line.x = element_line(colour = "black"), 
+  axis.line.y = element_line(colour = "black"),
+  legend.title=element_text(size=18),
+  legend.text=element_text(size=15),
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+
+```
+
+
+Anybody home?

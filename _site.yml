@@ -1,0 +1,8 @@
+name: "Explore-explain"
+navbar:
+  title: "Explore-explain"
+  left:
+    - text: "Wordle analyses"
+      href: index.html
+
+
