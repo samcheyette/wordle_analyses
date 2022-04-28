@@ -7,7 +7,7 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
+knitr::opts_chunk$set(echo = FALSE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
 ```
 
 
@@ -24,7 +24,7 @@ library(reghelper)
 library(RColorBrewer)
 #library(e1071)   
 library(robustbase)
-library(tidylog)
+#library(tidylog)
 library(hash)
 
 
@@ -48,33 +48,195 @@ panel.background = element_rect(fill = "white", colour = "grey50"),
 ```
 
 
-
 ```{r}
+df <- read.csv("data/data.csv")
+df$guess <- as.character(df$guess)
+df$true_word <- as.character(df$true_word)
+df$words_remaining_post <- df$words_remaining_post + 1*(df$words_remaining_post == 0)
+df$words_remaining_pre <- df$words_remaining_pre + 1*(df$words_remaining_pre == 0)
 
-df <- read.csv("data/data_model1.csv")
+df$bonus_regime <- gsub("TIME","Time",df$bonus_regime)
+df$bonus_regime <- gsub("GUESS","Guess",df$bonus_regime)
 
 df <- df %>%
-        mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %>%
-        group_by(uniqueid,trial) %>%
-        mutate(time_elapsed_trial=sum(time_elapsed)) %>%
-        filter(max(time_elapsed) < 60 * 5)
+      mutate(corr = 1*(guess==true_word)) %>%
+      filter(time_elapsed_curr >= 0) %>%
+      group_by(pid) %>%
+      mutate(mean_time_spent=mean(time_elapsed_curr)) %>%
+      group_by(pid,trial_id) %>%
+      mutate(ever_corr = max(guess==true_word)) %>%
+      mutate(total_guesses = max(guess_number)) %>%
+      mutate(total_trial_time = max(time_elapsed_trial)) %>%
+      filter(total_trial_time < 60 * 10) %>%
+      filter(max(time_elapsed_curr) < 60 * 5) %>%
+      mutate(prop_words_remaining = words_remaining_post/words_remaining_pre) %>%
+      group_by(true_word) %>%
+      mutate(mean_time_curr=mean(time_elapsed_curr))
 
 
 df_sub <- df %>%
+      group_by(pid, trial_id) %>%
+      top_n(n=1,wt=guess_number) %>%
+      group_by(true_word) %>%
+      mutate(mean_guess_number = mean(guess_number)) %>%
+      mutate(mean_corr = mean(corr))
+      
+
+max_trial <- max(df$number_of_guesses)
+
+bonus_regime <- c()
+guess_number <- c()
+corr <- c()
+words_remaining <- c()
+
+for (i in 1:nrow(df_sub)) {
+  corr_on <- df_sub[i,]$guess_number
+  br <- as.character(df_sub[i,]$bonus_regime)
+  uid <- as.character(df_sub[i,]$uniqueid)
+  tid <- as.character(df_sub[i,]$trial_id)
+  if (df_sub[i,]$ever_corr == FALSE) {
+    corr_on <- corr_on + 1
+  }
+  for (j in 1:max_trial) {
+    guess_number[length(guess_number)+1] <- j
+    bonus_regime[length(bonus_regime)+1] <- br
+    corr[length(corr)+1] <- 1*(j >= corr_on)
+
+    if (j <= corr_on) {
+      df_sub2 <- subset(df, (df$uniqueid == uid) & (df$trial_id == tid) & (df$guess_number == j))
+      wr <- df_sub2$words_remaining_post
+    } else {
+      wr <- 1
+    }
+    words_remaining[length(words_remaining)+1] <- wr
+
+  }
+}
+df_plt <- data.frame(bonus_regime, guess_number, corr, words_remaining)
+
+
+```
+
+
+
+```{r}
+
+df_model <- read.csv("data/data_model1.csv")
+df_model$condition <- gsub("TIME","Time",df_model$condition)
+df_model$condition <- gsub("GUESS","Guess",df_model$condition)
+
+
+df_model <- df_model %>%
+        mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %>%
+        group_by(uniqueid,trial) %>%
+        mutate(time_elapsed_trial=cumsum(time_elapsed)) %>%
+         filter(max(time_elapsed_trial) < 60 * 10) %>%
+        filter(max(time_elapsed) < 60 * 5)
+
+
+df_model_sub <- df_model %>%
           group_by(uniqueid,trial) %>%
           top_n(n=1,wt=guess_number)
 
 
 ```
 
-Anybody home?
+The first question we can ask is: did the manipulation work? There are a couple ways we can evaluate this. First, we can check whether people in the guess condition require fewer guesses in the guess-bonus condition.
+
+```{r, fig.width=8,fig.height=3}
+
+p.1 <- ggplot(data=df_sub, aes(x=bonus_regime, y=guess_number)) +
+      #geom_jitter(width=0.1,height=0.1,alpha=0.5) +
+      stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      paper_theme + ylab("Number of guesses") +
+      scale_x_discrete(labels=c("Guess bonus","Time bonus")) +
+      paper_theme + theme(axis.text.x=element_text(size=16,color="black"),
+                          axis.title.x=element_blank())
+
+p.2 <- ggplot(data=df, aes(x=bonus_regime, y=time_elapsed_curr)) +
+      #geom_jitter(width=0.1,height=0.1,alpha=0.5) +
+      stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      paper_theme + ylab("Time per guess (s)") +
+      scale_x_discrete(labels=c("Guess bonus","Time bonus")) +
+      paper_theme + theme(axis.text.x=element_text(size=16,color="black"),
+                          axis.title.x=element_blank())
+
+grid.arrange(p.1, p.2, ncol=2)
+
+```
+
+
+We can look at the probability of guessing the correct word (left) and the total time elapsed (right) in each condition after *n* guesses:
+
+
+```{r, fig.width=8,fig.height=3}
+
+
+p.1 <- ggplot(data=df_plt, aes(x=guess_number, y=corr, color=bonus_regime))+
+      stat_summary(fun="mean",geom="line") +
+      stat_summary(fun="mean",geom="point") +
+      stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      guides(color=guide_legend(title="Bonus")) +
+      scale_color_manual(values=c("blue","orange"), labels=c("Guess", "Time")) +
+      paper_theme +theme(legend.position=c(0.78,0.3)) +
+      xlab("Guess number") + ylab("P(correct)")
+
+p.2 <- ggplot(data=df, aes(x=guess_number, y=time_elapsed_trial,color=bonus_regime)) +
+      stat_summary(fun="mean",geom="line") +
+      stat_summary(fun="mean",geom="point") +
+      stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      guides(color="none") +
+      scale_color_manual(values=c("blue","orange"), labels=c("Guess", "Time")) +
+      paper_theme +theme(legend.position=c(0.18,0.78)) +
+      xlab("Guess number") + ylab("Time elapsed (s)") 
+
+
+
+
+grid.arrange(p.1, p.2, ncol=2)
+
+```
+We can now ask a slightly tricker question: were people allocating time to thinking *efficiently*? One way of answering this question is to look at whether people spent more time thinking when there was more information to gain. Specifically, we will compare the quality of participants' guesses as a function of the relative information gain from a very good guess versus a random guess. The graph on the left below shows the proportion of possible guesses that a participant's guess was better than (i.e., was more informative than) as a function of the relative information gain from the best possible guess versus a random guess. The graph on the right shows the same thing broken down by condition. We see a very strong effect of relative gain from a good sample on the quality of participant's guesses:
+
+```{r, fig.width=8,fig.height=3.25}
+
+p.1 <- ggplot(data=subset(df_model, df_model$guess_number > 1), aes(x=max_v_random_gain, y=quantile_ent_reduction)) +
+      stat_summary_bin(binwidth=0.25) +
+      stat_smooth(method="lm", formula=y~poly(x,1)) +
+      paper_theme  + theme(legend.title=element_blank(), legend.position=c(0.78,0.88)) +
+     coord_trans(y="log") +
+      xlab("Max vs. random gain") + ylab("Quantile info gain") 
+
+
+
+p.2 <- ggplot(data=subset(df_model, df_model$guess_number > 1), aes(x=max_v_random_gain, y=quantile_ent_reduction, color=condition)) +
+      stat_summary_bin(binwidth=0.4) +
+      stat_smooth(method="lm", formula=y~poly(x,1)) +
+      paper_theme  + theme(legend.title=element_blank(), legend.position=c(0.18,0.85)) +
+      guides(color=guide_legend(title="Bonus")) +
+      scale_color_manual(values=c("blue","orange"), labels=c("Guess", "Time")) +
+     coord_trans(y="log") +
+      xlab("Max vs. random gain") + ylab("Quantile info gain") 
+
+grid.arrange(p.1, p.2, ncol=2)
+
+```
+
+
+We can also check whether this same pattern holds at each guess number. That is, whether this effect is just due to people having a policy for how much to think after 1, 2, 3, etc... guesses, or whether it's actually more complex than than that. What we see is that this effect holds within each guess number:
 
 ```{r}
-ggplot(data=df, aes(x=guess_number, y=random_ent_reduction)) +
-      stat_summary() +
-      paper_theme
 
 
-
+ggplot(data=subset(df_model, df_model$guess_number < 10), aes(x=max_v_random_gain, y=quantile_ent_reduction)) +
+      stat_summary_bin(binwidth=0.5) +
+      stat_smooth(method="lm", formula=y~poly(x,1)) +
+      paper_theme  + theme(legend.title=element_blank(), legend.position=c(0.78,0.88)) +
+      xlab("Max vs. random gain") + ylab("Quantile info gain") + 
+      facet_wrap(~guess_number)
 
 ```
