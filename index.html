@@ -11,7 +11,7 @@
 
 
 
-<title>wordle_analyses</title>
+<title>Wordle analyses</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -286,33 +286,20 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">wordle_analyses</h1>
+<h1 class="title toc-ignore">Wordle analyses</h1>
 
 </div>
 
 
-<pre class="r"><code>df &lt;- read.csv(&quot;data/data_model1.csv&quot;)
-
-df &lt;- df %&gt;%
-        mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %&gt;%
-        group_by(uniqueid,trial) %&gt;%
-        mutate(time_elapsed_trial=sum(time_elapsed)) %&gt;%
-        filter(max(time_elapsed) &lt; 60 * 5)</code></pre>
-<pre><code>## mutate: new variable &#39;max_v_random_gain&#39; (double) with 1,780 unique values and 0% NA</code></pre>
-<pre><code>## group_by: 2 grouping variables (uniqueid, trial)</code></pre>
-<pre><code>## mutate (grouped): new variable &#39;time_elapsed_trial&#39; (double) with 378 unique values and 0% NA</code></pre>
-<pre><code>## filter (grouped): removed 44 rows (2%), 2,227 rows remaining</code></pre>
-<pre class="r"><code>df_sub &lt;- df %&gt;%
-          group_by(uniqueid,trial) %&gt;%
-          top_n(n=1,wt=guess_number)</code></pre>
-<pre><code>## group_by: 2 grouping variables (uniqueid, trial)</code></pre>
-<pre><code>## top_n (grouped): removed 1,855 rows (83%), 372 rows remaining</code></pre>
-<p>Anybody home?</p>
-<pre class="r"><code>ggplot(data=df, aes(x=guess_number, y=random_ent_reduction)) +
-      stat_summary() +
-      paper_theme</code></pre>
-<pre><code>## No summary function supplied, defaulting to `mean_se()`</code></pre>
-<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>The first question we can ask is: did the manipulation work? There are a couple ways we can evaluate this. First, we can check whether people in the guess condition require fewer guesses in the guess-bonus condition.</p>
+<p><br></p>
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>We can look at the probability of guessing the correct word (left) and the total time elapsed (right) in each condition after <em>n</em> guesses:</p>
+<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /> We can now ask a slightly tricker question: were people allocating time to thinking <em>efficiently</em>? One way of answering this question is to look at whether people spent more time thinking when there was more information to gain. Specifically, we will compare the quality of participants’ guesses as a function of the relative information gain from a very good guess versus a random guess. The graph on the left below shows the proportion of possible guesses that a participant’s guess was better than (i.e., was more informative than) as a function of the relative information gain from the best possible guess versus a random guess. The graph on the right shows the same thing broken down by condition. We see a very strong effect of relative gain from a good sample on the quality of participant’s guesses:</p>
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>We can also check whether this same pattern holds at each guess number. That is, whether this effect is just due to people having a policy for how much to think after 1, 2, 3, etc… guesses, or whether it’s actually more complex than than that. What we see is that this effect holds within each guess number:</p>
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p>Finally, we can estimate how many guesses participants were effectively sampling, based on how good their guess was. The plot below shows the effective number of samples taken as a function of the max vs. random information gain. <img src="index_files/figure-html/unnamed-chunk-8-1.png" width="480" style="display: block; margin: auto;" /></p>
 
 
 

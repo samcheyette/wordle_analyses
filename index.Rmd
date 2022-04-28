@@ -1,5 +1,5 @@
 ---
-title: "wordle_analyses"
+title: "Wordle analyses"
 output: html_document
 ---
 
@@ -7,7 +7,7 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
+knitr::opts_chunk$set(echo = FALSE,warning=FALSE,message=FALSE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
 ```
 
 
@@ -140,6 +140,7 @@ df_model_sub <- df_model %>%
 
 
 ```
+<br>
 
 The first question we can ask is: did the manipulation work? There are a couple ways we can evaluate this. First, we can check whether people in the guess condition require fewer guesses in the guess-bonus condition.
 
@@ -168,6 +169,7 @@ p.2 <- ggplot(data=df, aes(x=bonus_regime, y=time_elapsed_curr)) +
 grid.arrange(p.1, p.2, ncol=2)
 
 ```
+<br>
 
 
 We can look at the probability of guessing the correct word (left) and the total time elapsed (right) in each condition after *n* guesses:
@@ -200,6 +202,8 @@ p.2 <- ggplot(data=df, aes(x=guess_number, y=time_elapsed_trial,color=bonus_regi
 grid.arrange(p.1, p.2, ncol=2)
 
 ```
+<br>
+
 We can now ask a slightly tricker question: were people allocating time to thinking *efficiently*? One way of answering this question is to look at whether people spent more time thinking when there was more information to gain. Specifically, we will compare the quality of participants' guesses as a function of the relative information gain from a very good guess versus a random guess. The graph on the left below shows the proportion of possible guesses that a participant's guess was better than (i.e., was more informative than) as a function of the relative information gain from the best possible guess versus a random guess. The graph on the right shows the same thing broken down by condition. We see a very strong effect of relative gain from a good sample on the quality of participant's guesses:
 
 ```{r, fig.width=8,fig.height=3.25}
@@ -225,6 +229,7 @@ p.2 <- ggplot(data=subset(df_model, df_model$guess_number > 1), aes(x=max_v_rand
 grid.arrange(p.1, p.2, ncol=2)
 
 ```
+<br>
 
 
 We can also check whether this same pattern holds at each guess number. That is, whether this effect is just due to people having a policy for how much to think after 1, 2, 3, etc... guesses, or whether it's actually more complex than than that. What we see is that this effect holds within each guess number:
