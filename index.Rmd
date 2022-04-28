@@ -48,4 +48,23 @@ panel.background = element_rect(fill = "white", colour = "grey50"),
 ```
 
 
+
+```{r}
+
+df <- read.csv("out_files/data_model6.csv")
+
+df <- df %>%
+        mutate(max_v_random_gain=(max_ent_reduction+1e-5)/(random_ent_reduction+1e-5)) %>%
+        group_by(uniqueid,trial) %>%
+        mutate(time_elapsed_trial=sum(time_elapsed)) %>%
+        filter(max(time_elapsed) < 60 * 5)
+
+
+df_sub <- df %>%
+          group_by(uniqueid,trial) %>%
+          top_n(n=1,wt=guess_number)
+
+
+```
+
 Anybody home?
