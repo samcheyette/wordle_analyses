@@ -5,3 +5,5 @@ navbar:
   left:
     - text: "Wordle analyses"
       href: index.html
+    - text: "Model"
+      href: marginal_info.html

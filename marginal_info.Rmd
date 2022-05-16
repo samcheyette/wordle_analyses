@@ -1,0 +1,150 @@
+---
+title: "Model"
+output: html_document
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning=FALSE,message=FALSE,fig.width=5, fig.height=4,fig.align = "center",cache=TRUE)
+```
+
+
+```{r, echo=FALSE, include=FALSE, warning=FALSE, message=FALSE}
+##libraries, globals
+
+library(ggplot2)
+library(reshape)
+library(grid)
+library(dplyr)
+library(gridExtra)
+library(lme4)
+library(reghelper)
+library(RColorBrewer)
+#library(e1071)   
+library(robustbase)
+#library(tidylog)
+library(hash)
+
+
+
+paper_theme <- theme_light() + theme( axis.title.x = element_text(size=18),
+  axis.text.x=element_text(colour="#292929", 
+                           size = 14), 
+  axis.title.y = element_text(size = 18, vjust = 1),
+  axis.text.y  = element_text(size = 14, colour="#292929"),
+  strip.text=element_text(size=16,color="black"),
+strip.background = element_rect(colour = "grey50", fill = "white"),
+panel.background = element_rect(fill = "white", colour = "grey50"),
+  axis.ticks.x=element_blank(),axis.ticks.y=element_blank(),
+  axis.line.x = element_line(colour = "black"), 
+  axis.line.y = element_line(colour = "black"),
+  legend.title=element_text(size=18),
+  legend.text=element_text(size=15),
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+
+```
+
+
+
+```{r}
+
+df <- read.csv("data/marginal_info_model1.csv")
+df$id <- seq.int(1,nrow(df))
+
+df_sub <- df %>%
+          group_by(uniqueid, trial) %>%
+          mutate(losses = sum(losses)) %>%
+          mutate(random_losses=sum(random_losses)) %>%
+          mutate(time_elapsed = sum(time_elapsed)) %>%
+          mutate(n_sample_guess=sum(n_sample_guess)) %>%
+          top_n(n=1,wt=guess_number)
+
+df_part <- df_sub %>%
+          group_by(uniqueid) %>%
+          mutate(losses=sum(losses)) %>%
+          mutate(random_losses = sum(random_losses)) %>%
+          mutate(time_elapsed=sum(time_elapsed)) %>%
+          top_n(n=1,wt=id)
+```
+
+I created a model of how participants decide how much time to allocate to each guess. The model assumes that participants sample guesses, and track how much more informative their guess is getting as a function of time. That is, they are sampling guesses and taking the entropy-minimizing guess from their samples, and also computing the derivative of the change in entropy as a function of the number of samples they've taken. This allows them to approximate the marginal value of an additional sample, which we can call $\delta E / \delta S$. Once $\delta E / \delta S$ falls below some threshold, $\lambda$, they stop sampling guesses. So, when $\delta E / \delta S < \lambda$, they just guess the entropy-minimizing guess of their samples.  I ran a coarse grid search to find each participant's MLE $\lambda$.
+
+
+
+We can first look at the relationship between $\lambda$ and the expected number of guesses sampled:
+<br>
+
+```{r}
+
+
+ggplot(data=df, aes(x=sample_guess_lambda, y=n_sample_guess)) +
+        stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="line") +
+
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      scale_x_log10() +
+      labs(x=expression(lambda), y="Samples") +
+      paper_theme
+
+
+```
+<br><br>
+
+
+
+We can next look at the average value of $\lambda$ in each condition. As can be seen in the plot below, participants in the guess-bonus condition had a lower inferred $\lambda$ value, which aligns with expectations:
+
+<br>
+
+```{r}
+
+ggplot(data=df_part, aes(x=condition, y=sample_guess_lambda)) +
+        stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      labs(x="",y=expression(lambda)) +
+     scale_y_log10(breaks=c(1e-4,2e-4,3e-4,4e-4,5e-4,6e-4)) +
+      scale_x_discrete(labels=c("Guess bonus", "Time bonus")) +
+      paper_theme
+
+
+```
+
+
+<br><br>
+
+
+Finally, collapsing across conditions, we can see how participants' inferred values of $\lambda$ correspond with the number of guesses they took (left) and how much time they spent on each guess (right) in the plots below. As expected, participants with lower inferred $\lambda$ values required fewer guesses to correctly identify the word. What's interesting, and quite nice to see, is that they also took longer on each guess. This is pretty neat, because the model fitting was done only on how informative each guess was, *not* on how much time it took to guess. 
+
+<br>
+
+```{r,fig.width=8,fig.height=3.25}
+
+
+
+p.1 <- ggplot(data=df_sub, aes(x=sample_guess_lambda, y=guess_number)) +
+        stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      scale_x_log10() +
+      labs(x=expression(lambda), y="Total guesses") +
+      paper_theme
+
+
+p.2 <- ggplot(data=df, aes(x=sample_guess_lambda, y=time_elapsed)) +
+        stat_summary(fun.data="mean_se",geom="errorbar",width=0.1) +
+      stat_summary(fun="mean",geom="point",size=3) +
+      stat_summary(fun="mean",geom="point",size=2,color="white") +
+      scale_x_log10() +
+      labs(x=expression(lambda), y="Time per guess (s)") +
+
+      paper_theme
+
+grid.arrange(p.1, p.2, ncol=2)
+
+```
+

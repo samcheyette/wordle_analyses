@@ -1,0 +1,11 @@
+base
+ggplot2
+reshape
+dplyr
+gridExtra
+Matrix
+lme4
+reghelper
+RColorBrewer
+robustbase
+hash

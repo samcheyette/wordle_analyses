@@ -11,7 +11,7 @@
 
 
 
-<title>Wordle analyses</title>
+<title>Model</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -289,68 +289,21 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Wordle analyses</h1>
+<h1 class="title toc-ignore">Model</h1>
 
 </div>
 
 
+<p>I created a model of how participants decide how much time to allocate to each guess. The model assumes that participants sample guesses, and track how much more informative their guess is getting as a function of time. That is, they are sampling guesses and taking the entropy-minimizing guess from their samples, and also computing the derivative of the change in entropy as a function of the number of samples they’ve taken. This allows them to approximate the marginal value of an additional sample, which we can call <span class="math inline">\(\delta E / \delta S\)</span>. Once <span class="math inline">\(\delta E / \delta S\)</span> falls below some threshold, <span class="math inline">\(\lambda\)</span>, they stop sampling guesses. So, when <span class="math inline">\(\delta E / \delta S &lt; \lambda\)</span>, they just guess the entropy-minimizing guess of their samples. I ran a coarse grid search to find each participant’s MLE <span class="math inline">\(\lambda\)</span>.</p>
+<p>We can first look at the relationship between <span class="math inline">\(\lambda\)</span> and the expected number of guesses sampled: <br></p>
+<p><img src="marginal_info_files/figure-html/unnamed-chunk-3-1.png" width="480" style="display: block; margin: auto;" /> <br><br></p>
+<p>We can next look at the average value of <span class="math inline">\(\lambda\)</span> in each condition. As can be seen in the plot below, participants in the guess-bonus condition had a lower inferred <span class="math inline">\(\lambda\)</span> value, which aligns with expectations:</p>
 <p><br></p>
-<p>The question I’m interested in here is, when making a decision, 1) how do people decide how much data to gather; and 2) how much thought to put into the data they gather. One interesting idea is that under some circumstances, there will be a trade-off between gathering more data and thinking about the data. For instance, there are cases where you can figure something out by brute force without too much effort (e.g., if the space of possibilities is small). In other cases, brute force strategies will take too long, but by thinking, you can effectively narrow the space of possibilities. My hypothesis is that people choose information-gathering strategies that are efficient relative to the time costs of exploration versus thinking. A related hypothesis is that people will think more when there is more to be gained by thinking.</p>
-<p>To test this, I ran a small pilot where participants played Wordle, where participants were in one of two incentive conditions. In one condition they were given a bonus if they found the correct word quickly. In the other condition, they were given a bonus if they guessed the correct word in few guesses. One difference between this game and standard Wordle is that participants had a maximum of 15 guesses instead of just 6 (allowing for more of a brute-force approach).</p>
-<p>The first question we can ask is: did the manipulation work? There are a couple ways we can evaluate this. First, we can check whether people in the guess condition require fewer guesses in the guess-bonus condition.</p>
+<p><img src="marginal_info_files/figure-html/unnamed-chunk-4-1.png" width="480" style="display: block; margin: auto;" /></p>
+<p><br><br></p>
+<p>Finally, collapsing across conditions, we can see how participants’ inferred values of <span class="math inline">\(\lambda\)</span> correspond with the number of guesses they took (left) and how much time they spent on each guess (right) in the plots below. As expected, participants with lower inferred <span class="math inline">\(\lambda\)</span> values required fewer guesses to correctly identify the word. What’s interesting, and quite nice to see, is that they also took longer on each guess. This is pretty neat, because the model fitting was done only on how informative each guess was, <em>not</em> on how much time it took to guess.</p>
 <p><br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /> <br><br></p>
-<p>We can look at the probability of guessing the correct word (left) and the total time elapsed (right) in each condition after <em>n</em> guesses: <br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /> <br><br></p>
-<p>We can now ask a slightly tricker question: were people allocating time to thinking <em>efficiently</em>? One way of answering this question is to look at whether people spent more time thinking when there was more information to gain. Specifically, we will compare the quality of participants’ guesses as a function of the relative information gain from a very good guess versus a random guess. The graph on the left below shows the proportion of possible guesses that a participant’s guess was better than (i.e., was more informative than) as a function of the relative information gain from the best possible guess versus a random guess. The graph on the right shows the same thing broken down by condition. We see a very strong effect of relative gain from a good sample on the quality of participant’s guesses:</p>
-<p><br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /> <br><br></p>
-<p>We can also check whether this same pattern holds at each guess number. That is, whether this effect is just due to people having a policy for how much to think after 1, 2, 3, etc… guesses, or whether it’s actually more complex than than that. What we see is that this effect holds within each guess number:</p>
-<p><br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="480" style="display: block; margin: auto;" /> <br><br></p>
-<p>Finally, we can estimate how many guesses participants were effectively sampling, based on how good their guess was. The plot below shows the effective number of samples taken as a function of the max vs. random information gain.</p>
-<p><br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="480" style="display: block; margin: auto;" /> <img src="index_files/figure-html/unnamed-chunk-9-1.png" width="1152" style="display: block; margin: auto;" /></p>
-<pre><code>## 
-## Call:
-## lm(formula = quantile_ent_reduction ~ log(time_elapsed), data = subset(df_model, 
-##     df_model$guess_number &gt; 1))
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.61784 -0.20134 -0.02928  0.25301  0.47743 
-## 
-## Coefficients:
-##                   Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)        0.49657    0.03249  15.283  &lt; 2e-16 ***
-## log(time_elapsed)  0.03354    0.01053   3.186  0.00152 ** 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 0.2666 on 613 degrees of freedom
-## Multiple R-squared:  0.01629,    Adjusted R-squared:  0.01468 
-## F-statistic: 10.15 on 1 and 613 DF,  p-value: 0.001516</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = time_elapsed ~ guess_number * max_v_random_gain, 
-##     data = subset(df_model, df_model$guess_number &gt; 1))
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -45.176 -21.075 -12.811   6.448 246.679 
-## 
-## Coefficients:
-##                                Estimate Std. Error t value Pr(&gt;|t|)   
-## (Intercept)                     14.8419     8.3301   1.782   0.0753 . 
-## guess_number                     1.7456     1.3553   1.288   0.1983   
-## max_v_random_gain               10.8317     3.8359   2.824   0.0049 **
-## guess_number:max_v_random_gain  -1.4546     0.5907  -2.462   0.0141 * 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 38.89 on 611 degrees of freedom
-## Multiple R-squared:  0.01938,    Adjusted R-squared:  0.01457 
-## F-statistic: 4.025 on 3 and 611 DF,  p-value: 0.007496</code></pre>
+<p><img src="marginal_info_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
 
 
 
