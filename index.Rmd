@@ -287,20 +287,5 @@ ggplot(data=subset(df_model, df_model$guess_number > 1), aes(x=max_v_random_gain
 
 
 ```
-```{r,fig.width=12,fig.height=7}
-ggplot(data=subset(df_model, (df_model$guess_number > 1) & (df_model$guess_number < 10)), aes(x=init_entropy, y=time_elapsed)) +
-      stat_summary_bin(bins=10,geom="point",fun="mean") +
-      stat_summary_bin(bins=10,geom="errorbar",fun.data="mean_se") +
 
-      stat_smooth(method="lm") +
-      paper_theme  + theme(legend.title=element_blank()) +
-      scale_y_log10() +
-      scale_color_manual(values=c("blue","orange"))# +
-     # facet_wrap(~guess_number)
-
-
-summary(lm(data=subset(df_model, df_model$guess_number > 1), quantile_ent_reduction ~ log(time_elapsed)   ))
-summary(lm(data=subset(df_model, df_model$guess_number > 1), time_elapsed ~  guess_number * max_v_random_gain))
-
-```
 
