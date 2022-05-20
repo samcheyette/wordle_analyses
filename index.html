@@ -310,47 +310,7 @@ $(document).ready(function () {
 <p><img src="index_files/figure-html/unnamed-chunk-7-1.png" width="480" style="display: block; margin: auto;" /> <br><br></p>
 <p>Finally, we can estimate how many guesses participants were effectively sampling, based on how good their guess was. The plot below shows the effective number of samples taken as a function of the max vs. random information gain.</p>
 <p><br></p>
-<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="480" style="display: block; margin: auto;" /> <img src="index_files/figure-html/unnamed-chunk-9-1.png" width="1152" style="display: block; margin: auto;" /></p>
-<pre><code>## 
-## Call:
-## lm(formula = quantile_ent_reduction ~ log(time_elapsed), data = subset(df_model, 
-##     df_model$guess_number &gt; 1))
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.61784 -0.20134 -0.02928  0.25301  0.47743 
-## 
-## Coefficients:
-##                   Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)        0.49657    0.03249  15.283  &lt; 2e-16 ***
-## log(time_elapsed)  0.03354    0.01053   3.186  0.00152 ** 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 0.2666 on 613 degrees of freedom
-## Multiple R-squared:  0.01629,    Adjusted R-squared:  0.01468 
-## F-statistic: 10.15 on 1 and 613 DF,  p-value: 0.001516</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = time_elapsed ~ guess_number * max_v_random_gain, 
-##     data = subset(df_model, df_model$guess_number &gt; 1))
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -45.176 -21.075 -12.811   6.448 246.679 
-## 
-## Coefficients:
-##                                Estimate Std. Error t value Pr(&gt;|t|)   
-## (Intercept)                     14.8419     8.3301   1.782   0.0753 . 
-## guess_number                     1.7456     1.3553   1.288   0.1983   
-## max_v_random_gain               10.8317     3.8359   2.824   0.0049 **
-## guess_number:max_v_random_gain  -1.4546     0.5907  -2.462   0.0141 * 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 38.89 on 611 degrees of freedom
-## Multiple R-squared:  0.01938,    Adjusted R-squared:  0.01457 
-## F-statistic: 4.025 on 3 and 611 DF,  p-value: 0.007496</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="480" style="display: block; margin: auto;" /></p>
 
 
 
